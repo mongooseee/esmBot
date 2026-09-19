@@ -89,6 +89,9 @@
       "whisper": "Adds a Whisper style caption to an image",
       "wide": "Stretches an image to 19x its width",
       "woow": "Mirrors the top of an image onto the bottom",
+      "ask": "Asks an AI model a question, optionally about an image",
+      "imagine": "Generates an image from a description",
+      "edit": "Edits an image using an AI model",
       "Select Image": "No description found",
       "music": "Handles music playback",
       "tags": "The main tags command. Check the help page for more info: https://esmbot.net/help.html"
@@ -316,9 +319,39 @@
       "qr": {
         "create": "create",
         "read": "read"
+      },
+      "ask": {
+        "prompt": "prompt",
+        "image": "image",
+        "link": "link"
+      },
+      "imagine": {
+        "prompt": "prompt",
+        "spoiler": "spoiler"
+      },
+      "edit": {
+        "prompt": "prompt",
+        "image": "image",
+        "link": "link",
+        "spoiler": "spoiler"
       }
     },
     "flags": {
+      "ask": {
+        "prompt": "What you want to ask",
+        "image": "An image to ask about",
+        "link": "The URL of an image to ask about"
+      },
+      "imagine": {
+        "prompt": "A description of the image you want",
+        "spoiler": "Attempt to send output as a spoiler"
+      },
+      "edit": {
+        "prompt": "A description of the change you want",
+        "image": "An image/GIF attachment",
+        "link": "An image/GIF URL",
+        "spoiler": "Attempt to send output as a spoiler"
+      },
       "8ball": {
         "question": "A question you want to ask the ball"
       },
@@ -991,6 +1024,25 @@
         "noResults": "I couldn't find any results!"
       }
     }
+  },
+  "ai": {
+    "credits": "This instance of esmBot has run out of AI credits!",
+    "disabled": "AI commands aren't set up on this instance of esmBot.",
+    "empty": "The AI model didn't return anything usable!",
+    "error": "Something went wrong while talking to the AI provider. Try again in a bit.",
+    "flagNames": {
+      "model": "model"
+    },
+    "flags": {
+      "model": "An OpenRouter model slug to use instead of the configured default"
+    },
+    "large": "That image is too large to send to an AI model!",
+    "moderation": "That request was rejected by the AI provider's content filters.",
+    "noImage": "You need to provide an image/GIF to edit!",
+    "noPrompt": "You need to provide a prompt!",
+    "nomedia": "I couldn't download that image!",
+    "ratelimit": "The AI provider is rate limiting us right now. Try again in a bit.",
+    "timeout": "The AI provider took too long to respond. Try again in a bit."
   },
   "error": "Uh oh! I ran into an error while running this command. Please report the content of the attached file at the following link or on the esmBot Support server:",
   "errorCaps": "ERROR",
