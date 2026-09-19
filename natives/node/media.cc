@@ -44,11 +44,15 @@ Napi::Value ProcessMedia(const Napi::CallbackInfo &info) {
 
   esmb::ArgumentMap Arguments;
 
-  // We only have a single possible global arg at the moment,
-  // let's define it here
+  // Global args apply to every command, so we define them here
   auto val = obj.Get("togif");
   if (!val.IsEmpty() && !val.IsUndefined() && !val.IsNull()) {
     Arguments["togif"] = val.ToBoolean().Value();
+  }
+
+  val = obj.Get("quality");
+  if (!val.IsEmpty() && !val.IsUndefined() && !val.IsNull()) {
+    Arguments["quality"] = val.ToNumber().Int32Value();
   }
 
   if (MapContainsKey(esmb::Image::FunctionArgsMap, command)) {

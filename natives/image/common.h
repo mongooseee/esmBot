@@ -19,6 +19,7 @@ typedef struct {
 } CallbackData;
 #define IMG_TIMEOUT 600
 #define MAX_PIXELS (64 * 1000000)
+#define DEFAULT_QUALITY 95
 
 #include "commands.h"
 
@@ -26,6 +27,8 @@ void LoadFonts(string basePath);
 void CheckPixelLimit(const char *bufferData, size_t bufferLength);
 vips::VImage NormalizeVips(vips::VImage in, int *width, int *pageHeight, int nPages);
 vips::VOption *GetInputOptions(string type, bool sequential, bool sequentialIfAnim);
+vips::VOption *GetOutputOptions(const string &outType, esmb::ArgumentMap arguments, int dither = 1,
+                                bool reoptimise = false);
 
 const std::vector<double> zeroVec = {0, 0, 0, 0};
 const std::vector<double> zeroVecOneAlpha = {0, 0, 0, 1};

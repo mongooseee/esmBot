@@ -48,7 +48,8 @@ CmdOutput esmb::Image::QrCreate([[maybe_unused]] const string &type, string &out
 
   char *buf;
   size_t dataSize = 0;
-  img.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  img.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                      GetOutputOptions(outType, arguments));
 
   return {buf, dataSize};
 }

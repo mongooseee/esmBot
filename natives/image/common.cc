@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <vips/vips8>
@@ -60,6 +61,23 @@ vips::VOption *GetInputOptions(string type, bool sequential, bool sequentialIfAn
   }
 
   return options;
+}
+
+static int GetQuality(esmb::ArgumentMap arguments) {
+  int quality = GetArgumentWithFallback<int>(arguments, "quality", DEFAULT_QUALITY);
+  return std::clamp(quality, 1, 100);
+}
+
+vips::VOption *GetOutputOptions(const string &outType, esmb::ArgumentMap arguments, int dither, bool reoptimise) {
+  // GIF is the only palette based format we write, so it takes dithering options
+  // instead of the quality factor every other format understands
+  if (outType == "gif") {
+    vips::VOption *options = vips::VImage::option()->set("dither", dither);
+    if (reoptimise) options->set("reoptimise", 1);
+    return options;
+  }
+
+  return vips::VImage::option()->set("Q", GetQuality(arguments));
 }
 
 static void TimeoutCallback(VipsImage *image, [[maybe_unused]] VipsProgress *progress, CallbackData *data) {

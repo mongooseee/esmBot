@@ -21,6 +21,8 @@ import { upload } from "#utils/tempimages.js";
 import type { ExtendedConstructedCommandOptions, MediaParams, MediaMeta, MediaTypes } from "#utils/types.js";
 import Command from "./command.ts";
 
+const defaultQuality = 95;
+
 class MediaCommand extends Command {
   params?: object;
 
@@ -30,6 +32,15 @@ class MediaCommand extends Command {
 
   async criteria(_text?: string | number | boolean | User | Attachment) {
     return true;
+  }
+
+  /**
+   * Read the quality to encode the output with, falling back to the default when unset/invalid.
+   */
+  getQuality() {
+    const quality = this.getOptionInteger("quality");
+    if (quality === undefined || Number.isNaN(quality)) return defaultQuality;
+    return Math.max(1, Math.min(quality, 100));
   }
 
   async run() {
@@ -123,6 +134,7 @@ class MediaCommand extends Command {
 
     mediaParams.params = {
       togif: !!this.getOptionBoolean("togif"),
+      quality: this.getQuality(),
       ...(this.params ?? this.paramsFunc()),
     };
 
@@ -274,6 +286,17 @@ class MediaCommand extends Command {
         descriptionLocalizations: getAllLocalizations("image.flags.togif"),
       });
     }
+    if (this.qualityOption) {
+      this.flags.push({
+        name: "quality",
+        nameLocalizations: getAllLocalizations("image.flagNames.quality"),
+        type: Constants.ApplicationCommandOptionTypes.INTEGER,
+        description: "Set the output quality (default: 95)",
+        descriptionLocalizations: getAllLocalizations("image.flags.quality"),
+        minValue: 1,
+        maxValue: 100,
+      });
+    }
 
     this.flags.push(
       {
@@ -314,6 +337,8 @@ class MediaCommand extends Command {
   static requiredParamType: ExtendedConstructedCommandOptions["type"] = "string";
   static textOptional = false;
   static alwaysGIF = false;
+  /** Set to false by commands that register a `quality` flag of their own. */
+  static qualityOption = true;
   static noImage = "You need to provide an image/GIF!";
   static noParam = "You need to provide some text!";
   static empty = "The resulting output was empty!";

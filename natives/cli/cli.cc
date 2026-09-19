@@ -102,6 +102,19 @@ Args parseArguments(int argc, char *argv[]) {
   return args;
 }
 
+static bool parseIntFlag(esmb::ArgumentMap &flags, const std::string &name) {
+  // global args can also appear in FunctionArgsMap, in which case they're already converted
+  if (!MapContainsKey(flags, name) || std::holds_alternative<int>(flags.at(name))) return true;
+
+  try {
+    flags[name] = std::stoi(GetArgument<std::string>(flags, name));
+  } catch (std::exception &e) {
+    std::cerr << "Invalid integer value passed to " << name << std::endl;
+    return false;
+  }
+  return true;
+}
+
 std::string printHelp() {
   std::stringstream out;
   out << "Usage: esmb-cli function [input] output" << std::endl << std::endl;
@@ -180,13 +193,7 @@ int main(int argc, char *argv[]) {
       }
 
       if (arg.second.type == typeid(int)) {
-        std::string val = GetArgument<std::string>(args.flags, arg.first);
-        try {
-          args.flags[arg.first] = std::stoi(val);
-        } catch (std::invalid_argument &e) {
-          std::cerr << "Invalid integer value passed to " << arg.first << std::endl;
-          return 1;
-        }
+        if (!parseIntFlag(args.flags, arg.first)) return 1;
       } else if (arg.second.type == typeid(float)) {
         std::string val = GetArgument<std::string>(args.flags, arg.first);
         try {
@@ -198,6 +205,9 @@ int main(int argc, char *argv[]) {
       }
     }
   }
+
+  // global args are not listed in FunctionArgsMap, so convert them separately
+  if (!parseIntFlag(args.flags, "quality")) return 1;
 
   std::filesystem::path out = isInputFunc ? args.args[3] : args.args[2];
 

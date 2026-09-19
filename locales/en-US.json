@@ -1004,6 +1004,7 @@
       "image": "image",
       "link": "link",
       "media": "media",
+      "quality": "quality",
       "spoiler": "spoiler",
       "text": "text",
       "togif": "togif"
@@ -1013,6 +1014,7 @@
       "image": "An image/GIF attachment",
       "link": "An image/GIF URL",
       "media": "A media attachment",
+      "quality": "Set the output quality (default: 95)",
       "spoiler": "Attempt to send output as a spoiler",
       "text": "The text to put on the image",
       "togif": "Force GIF output"

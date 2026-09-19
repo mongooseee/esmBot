@@ -6,7 +6,7 @@ using namespace std;
 using namespace vips;
 
 CmdOutput esmb::Image::Swirl(const string &type, string &outType, const char *bufferdata, size_t bufferLength,
-                             [[maybe_unused]] esmb::ArgumentMap arguments, bool *shouldKill) {
+                             esmb::ArgumentMap arguments, bool *shouldKill) {
   VImage in = VImage::new_from_buffer(bufferdata, bufferLength, "", GetInputOptions(type, false, false));
 
   int pageHeight = vips_image_get_page_height(in.get_image());
@@ -54,7 +54,8 @@ CmdOutput esmb::Image::Swirl(const string &type, string &outType, const char *bu
 
   char *buf;
   size_t dataSize = 0;
-  final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                        GetOutputOptions(outType, arguments));
 
   return {buf, dataSize};
 }

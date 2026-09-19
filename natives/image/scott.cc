@@ -55,7 +55,7 @@ CmdOutput esmb::Image::Scott(const string &type, string &outType, const char *bu
   char *buf;
   size_t dataSize = 0;
   final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
-                        outType == "gif" ? VImage::option()->set("dither", 1) : 0);
+                        GetOutputOptions(outType, arguments, 1));
 
   return {buf, dataSize};
 }

@@ -26,7 +26,8 @@ char *vipsTrim(const char *data, size_t length, size_t &dataSize, int frame, str
   SetupTimeoutCallback(out, shouldKill);
 
   char *buf;
-  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                      GetOutputOptions(outType, arguments));
 
   return buf;
 }

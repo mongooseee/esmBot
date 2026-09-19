@@ -6,7 +6,7 @@ using namespace std;
 using namespace vips;
 
 CmdOutput esmb::Image::Tile(const string &type, string &outType, const char *bufferdata, size_t bufferLength,
-                            [[maybe_unused]] esmb::ArgumentMap arguments, bool *shouldKill) {
+                            esmb::ArgumentMap arguments, bool *shouldKill) {
   VImage in = VImage::new_from_buffer(bufferdata, bufferLength, "", GetInputOptions(type, false, false));
 
   int width = in.width();
@@ -41,7 +41,7 @@ CmdOutput esmb::Image::Tile(const string &type, string &outType, const char *buf
   char *buf;
   size_t dataSize = 0;
   final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
-                        outType == "gif" ? VImage::option()->set("reoptimise", 1) : 0);
+                        GetOutputOptions(outType, arguments, 1, true));
 
   return {buf, dataSize};
 }
