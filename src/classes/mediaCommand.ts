@@ -21,8 +21,6 @@ import { upload } from "#utils/tempimages.js";
 import type { ExtendedConstructedCommandOptions, MediaParams, MediaMeta, MediaTypes } from "#utils/types.js";
 import Command from "./command.ts";
 
-const defaultQuality = 95;
-
 class MediaCommand extends Command {
   params?: object;
 
@@ -35,11 +33,14 @@ class MediaCommand extends Command {
   }
 
   /**
-   * Read the quality to encode the output with, falling back to the default when unset/invalid.
+   * Read the quality to encode the output with, or undefined when none was given.
+   *
+   * Leaving it out matters: the natives only quantize PNG output when a quality
+   * was explicitly asked for, so they need to tell an explicit 95 from a default.
    */
   getQuality() {
     const quality = this.getOptionInteger("quality");
-    if (quality === undefined || Number.isNaN(quality)) return defaultQuality;
+    if (quality === undefined || Number.isNaN(quality)) return;
     return Math.max(1, Math.min(quality, 100));
   }
 
@@ -132,9 +133,10 @@ class MediaCommand extends Command {
       }
     }
 
+    const quality = this.getQuality();
     mediaParams.params = {
       togif: !!this.getOptionBoolean("togif"),
-      quality: this.getQuality(),
+      ...(quality === undefined ? {} : { quality }),
       ...(this.params ?? this.paramsFunc()),
     };
 

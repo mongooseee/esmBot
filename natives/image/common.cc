@@ -69,7 +69,7 @@ static int GetQuality(esmb::ArgumentMap arguments) {
 }
 
 vips::VOption *GetOutputOptions(const string &outType, esmb::ArgumentMap arguments, int dither, bool reoptimise) {
-  // GIF is the only palette based format we write, so it takes dithering options
+  // GIF is always written as a palette image, so it takes dithering options
   // instead of the quality factor every other format understands
   if (outType == "gif") {
     vips::VOption *options = vips::VImage::option()->set("dither", dither);
@@ -77,7 +77,17 @@ vips::VOption *GetOutputOptions(const string &outType, esmb::ArgumentMap argumen
     return options;
   }
 
-  return vips::VImage::option()->set("Q", GetQuality(arguments));
+  int quality = GetQuality(arguments);
+  vips::VOption *options = vips::VImage::option()->set("Q", quality);
+
+  // PNG is lossless, and ignores the quality factor entirely unless it's written
+  // as a palette image. Quantising is lossy, so only turn it on when a quality
+  // was actually asked for, and leave 100 lossless as an escape hatch.
+  if (outType == "png" && MapContainsKey(arguments, "quality") && quality < 100) {
+    options->set("palette", true);
+  }
+
+  return options;
 }
 
 static void TimeoutCallback(VipsImage *image, [[maybe_unused]] VipsProgress *progress, CallbackData *data) {
