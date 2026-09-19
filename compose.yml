@@ -1,3 +1,5 @@
+name: esmbot
+
 services:
   bot:
     build: .
@@ -23,10 +25,23 @@ services:
       lavalink:
         condition: service_healthy
 
+  # a fresh named volume is owned by root, but lavalink runs as uid 322 and has
+  # to download its plugins into it, so hand it over before lavalink starts
+  lavalink-init:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    user: root
+    entrypoint: ["sh", "-c", "chown -R 322:322 /opt/Lavalink/plugins"]
+    restart: "no"
+    volumes:
+      - lavaplugins:/opt/Lavalink/plugins/
+
   lavalink:
     container_name: lavalink
     image: ghcr.io/lavalink-devs/lavalink:4
     restart: unless-stopped
+    depends_on:
+      lavalink-init:
+        condition: service_completed_successfully
     volumes:
       - ./application.yml:/opt/Lavalink/application.yml
       - lavaplugins:/opt/Lavalink/plugins/
@@ -35,6 +50,7 @@ services:
       interval: 15s
       timeout: 10s
       retries: 5
+      start_period: 60s
 
 volumes:
   lavaplugins:
