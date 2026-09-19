@@ -11,6 +11,9 @@
 **/dist
 **/.cache
 
+# holds the bot token; the image must never carry it in a layer
+.env
+
 *.log
 npm-debug.log*
 yarn-debug.log*
