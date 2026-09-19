@@ -34,7 +34,8 @@ CmdOutput esmb::Image::Sonic([[maybe_unused]] const string &type, string &outTyp
 
   char *buf;
   size_t dataSize = 0;
-  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                      GetOutputOptions(outType, arguments));
 
   return {buf, dataSize};
 }

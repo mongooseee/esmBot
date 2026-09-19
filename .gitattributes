@@ -1,0 +1,4 @@
+# Mounted into the Lavalink container, where a shell script parses the password
+# out of it. CRLF endings leave a stray carriage return in the value and break
+# the healthcheck, so keep this file LF regardless of the platform.
+application.yml text eol=lf

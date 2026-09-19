@@ -21,6 +21,9 @@ class JPEGCommand extends MediaCommand {
     return this;
   }
 
+  // this command's own quality flag already sets the output quality
+  static qualityOption = false;
+
   static description = "Adds JPEG compression to an image";
   static aliases = ["needsmorejpeg", "jpegify", "magik2", "morejpeg", "jpg", "quality"];
 

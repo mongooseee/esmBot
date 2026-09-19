@@ -19,7 +19,8 @@ void *memset16(void *m, uint16_t val, size_t count) {
   return m;
 }
 
-char *vipsRemove(const char *data, size_t length, size_t &dataSize, float speed, string suffix, bool *shouldKill) {
+char *vipsRemove(const char *data, size_t length, size_t &dataSize, float speed, string outType,
+                 esmb::ArgumentMap arguments, bool *shouldKill) {
   VOption *options = VImage::option()->set("access", "sequential");
 
   VImage in = VImage::new_from_buffer(data, length, "", options->set("n", -1));
@@ -39,7 +40,8 @@ char *vipsRemove(const char *data, size_t length, size_t &dataSize, float speed,
   SetupTimeoutCallback(out, shouldKill);
 
   char *buf;
-  out.write_to_buffer(suffix.c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                      GetOutputOptions(outType, arguments));
 
   return buf;
 }
@@ -95,7 +97,7 @@ CmdOutput esmb::Image::Speed([[maybe_unused]] const string &type, [[maybe_unused
 
     if (removeFrames) {
       free(fileData);
-      fileData = vipsRemove(bufferdata, bufferLength, dataSize, speed, ".gif", shouldKill);
+      fileData = vipsRemove(bufferdata, bufferLength, dataSize, speed, "gif", arguments, shouldKill);
     } else {
       dataSize = bufferLength;
     }
@@ -119,7 +121,7 @@ CmdOutput esmb::Image::Speed([[maybe_unused]] const string &type, [[maybe_unused
 
     if (removeFrames) {
       free(fileData);
-      fileData = vipsRemove(bufferdata, bufferLength, dataSize, speed, ".webp", shouldKill);
+      fileData = vipsRemove(bufferdata, bufferLength, dataSize, speed, "webp", arguments, shouldKill);
     } else {
       dataSize = bufferLength;
     }

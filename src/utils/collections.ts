@@ -46,6 +46,8 @@ class TimedMap<K, V> extends Map<K, V> {
 }
 
 export const runningCommands = new TimedMap<string, Date>(5000);
+/** Users with an AI request in flight. These are slow and cost money, so they're limited to one at a time. */
+export const aiRequests = new Set<string>();
 export const selectedImages = new TimedMap<string, MediaMeta>(180000);
 
 class Cache<K, V> extends Map {

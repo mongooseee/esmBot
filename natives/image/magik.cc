@@ -59,9 +59,8 @@ static VImage LqrRescale(VImage img, int target_w, int target_h) {
   return out;
 }
 
-CmdOutput esmb::Image::Magik(const string &type, string &outType, const char *bufferdata,
-                             size_t bufferLength, [[maybe_unused]] esmb::ArgumentMap arguments,
-                             bool *shouldKill) {
+CmdOutput esmb::Image::Magik(const string &type, string &outType, const char *bufferdata, size_t bufferLength,
+                             esmb::ArgumentMap arguments, bool *shouldKill) {
   VImage in = VImage::new_from_buffer(bufferdata, bufferLength, "", GetInputOptions(type, true, false))
                  .colourspace(VIPS_INTERPRETATION_sRGB);
 
@@ -114,7 +113,8 @@ CmdOutput esmb::Image::Magik(const string &type, string &outType, const char *bu
 
   char *buf;
   size_t dataSize = 0;
-  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                      GetOutputOptions(outType, arguments));
 
   return {buf, dataSize};
 }

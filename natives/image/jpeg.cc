@@ -43,7 +43,7 @@ CmdOutput esmb::Image::Jpeg(const string &type, string &outType, const char *buf
       final.set("delay", in.get_array_int("delay"));
       final.set("loop", in.get_int("loop"));
       final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
-                            outType == "gif" ? VImage::option()->set("dither", 0) : 0);
+                            GetOutputOptions(outType, arguments, 0));
     } else {
       void *jpgBuf;
       size_t jpgLength;
@@ -53,7 +53,7 @@ CmdOutput esmb::Image::Jpeg(const string &type, string &outType, const char *buf
       final.set("delay", in.get_array_int("delay"));
       final.set("loop", in.get_int("loop"));
       final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
-                            outType == "gif" ? VImage::option()->set("dither", 0) : 0);
+                            GetOutputOptions(outType, arguments, 0));
       free(jpgBuf);
     }
   } else {

@@ -13,7 +13,7 @@ FunctionArgs esmb::Image::FreezeArgs = {
 };
 
 char *vipsTrim(const char *data, size_t length, size_t &dataSize, int frame, string suffix, string outType,
-               bool *shouldKill) {
+               esmb::ArgumentMap arguments, bool *shouldKill) {
   VImage in = VImage::new_from_buffer(data, length, "", GetInputOptions(suffix, true, false));
 
   int pageHeight = vips_image_get_page_height(in.get_image());
@@ -26,7 +26,8 @@ char *vipsTrim(const char *data, size_t length, size_t &dataSize, int frame, str
   SetupTimeoutCallback(out, shouldKill);
 
   char *buf;
-  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                      GetOutputOptions(outType, arguments));
 
   return buf;
 }
@@ -68,7 +69,7 @@ CmdOutput esmb::Image::Freeze(const string &type, string &outType, const char *b
 
       output.buf = fileData;
     } else if (frame >= 0 && !loop) {
-      char *buf = vipsTrim(bufferdata, bufferLength, dataSize, frame, type, outType, shouldKill);
+      char *buf = vipsTrim(bufferdata, bufferLength, dataSize, frame, type, outType, arguments, shouldKill);
       output.buf = buf;
     } else {
       char *fileData = static_cast<char *>(malloc(bufferLength));
@@ -91,7 +92,7 @@ CmdOutput esmb::Image::Freeze(const string &type, string &outType, const char *b
     output.length = dataSize;
   } else if (type == "webp") {
     if (frame >= 0 && !loop) {
-      char *buf = vipsTrim(bufferdata, bufferLength, dataSize, frame, type, outType, shouldKill);
+      char *buf = vipsTrim(bufferdata, bufferLength, dataSize, frame, type, outType, arguments, shouldKill);
       output.buf = buf;
       output.length = dataSize;
     } else {

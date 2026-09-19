@@ -8,6 +8,7 @@ export const categoryTemplate = {
   general: [],
   tags: ["> **Every command in this category is a subcommand of the tag command.**\n"],
   "image-editing": ["> **These commands support the PNG, JPEG, WEBP, AVIF (static only), and GIF formats.**\n"],
+  ai: ["> **These commands are unavailable unless the instance owner has configured an OpenRouter API key.**\n"],
 };
 export let categories: {
   [key: string]: string[];

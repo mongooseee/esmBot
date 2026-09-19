@@ -87,7 +87,8 @@ CmdOutput esmb::Image::Globe(const string &type, string &outType, const char *bu
 
   char *buf;
   size_t dataSize = 0;
-  final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                        GetOutputOptions(outType, arguments));
 
   return {buf, dataSize};
 }

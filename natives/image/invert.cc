@@ -6,7 +6,7 @@ using namespace std;
 using namespace vips;
 
 CmdOutput esmb::Image::Invert(const string &type, string &outType, const char *bufferdata, size_t bufferLength,
-                              [[maybe_unused]] esmb::ArgumentMap arguments, bool *shouldKill) {
+                              esmb::ArgumentMap arguments, bool *shouldKill) {
   VImage in = VImage::new_from_buffer(bufferdata, bufferLength, "", GetInputOptions(type, true, false));
 
   bool hasAlpha = in.has_alpha();
@@ -19,7 +19,8 @@ CmdOutput esmb::Image::Invert(const string &type, string &outType, const char *b
 
   char *buf;
   size_t dataSize = 0;
-  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                      GetOutputOptions(outType, arguments));
 
   return {buf, dataSize};
 }

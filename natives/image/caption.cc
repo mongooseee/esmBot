@@ -63,7 +63,7 @@ CmdOutput esmb::Image::Caption(const string &type, string &outType, const char *
   char *buf;
   size_t dataSize = 0;
   final.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
-                        outType == "gif" ? VImage::option()->set("dither", 0)->set("reoptimise", 1) : 0);
+                        GetOutputOptions(outType, arguments, 0, true));
 
   return {buf, dataSize};
 }

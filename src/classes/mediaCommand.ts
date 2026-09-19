@@ -32,6 +32,18 @@ class MediaCommand extends Command {
     return true;
   }
 
+  /**
+   * Read the quality to encode the output with, or undefined when none was given.
+   *
+   * Leaving it out matters: the natives only quantize PNG output when a quality
+   * was explicitly asked for, so they need to tell an explicit 95 from a default.
+   */
+  getQuality() {
+    const quality = this.getOptionInteger("quality");
+    if (quality === undefined || Number.isNaN(quality)) return;
+    return Math.max(1, Math.min(quality, 100));
+  }
+
   async run() {
     this.success = false;
 
@@ -121,8 +133,10 @@ class MediaCommand extends Command {
       }
     }
 
+    const quality = this.getQuality();
     mediaParams.params = {
       togif: !!this.getOptionBoolean("togif"),
+      ...(quality === undefined ? {} : { quality }),
       ...(this.params ?? this.paramsFunc()),
     };
 
@@ -274,6 +288,17 @@ class MediaCommand extends Command {
         descriptionLocalizations: getAllLocalizations("image.flags.togif"),
       });
     }
+    if (this.qualityOption) {
+      this.flags.push({
+        name: "quality",
+        nameLocalizations: getAllLocalizations("image.flagNames.quality"),
+        type: Constants.ApplicationCommandOptionTypes.INTEGER,
+        description: "Set the output quality (default: 95)",
+        descriptionLocalizations: getAllLocalizations("image.flags.quality"),
+        minValue: 1,
+        maxValue: 100,
+      });
+    }
 
     this.flags.push(
       {
@@ -314,6 +339,8 @@ class MediaCommand extends Command {
   static requiredParamType: ExtendedConstructedCommandOptions["type"] = "string";
   static textOptional = false;
   static alwaysGIF = false;
+  /** Set to false by commands that register a `quality` flag of their own. */
+  static qualityOption = true;
   static noImage = "You need to provide an image/GIF!";
   static noParam = "You need to provide some text!";
   static empty = "The resulting output was empty!";

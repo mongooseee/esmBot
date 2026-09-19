@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <vips/vips8>
@@ -57,6 +58,33 @@ vips::VOption *GetInputOptions(string type, bool sequential, bool sequentialIfAn
 
   if (sequential && !sequentialIfAnim) {
     options->set("access", "sequential");
+  }
+
+  return options;
+}
+
+static int GetQuality(esmb::ArgumentMap arguments) {
+  int quality = GetArgumentWithFallback<int>(arguments, "quality", DEFAULT_QUALITY);
+  return std::clamp(quality, 1, 100);
+}
+
+vips::VOption *GetOutputOptions(const string &outType, esmb::ArgumentMap arguments, int dither, bool reoptimise) {
+  // GIF is always written as a palette image, so it takes dithering options
+  // instead of the quality factor every other format understands
+  if (outType == "gif") {
+    vips::VOption *options = vips::VImage::option()->set("dither", dither);
+    if (reoptimise) options->set("reoptimise", 1);
+    return options;
+  }
+
+  int quality = GetQuality(arguments);
+  vips::VOption *options = vips::VImage::option()->set("Q", quality);
+
+  // PNG is lossless, and ignores the quality factor entirely unless it's written
+  // as a palette image. Quantising is lossy, so only turn it on when a quality
+  // was actually asked for, and leave 100 lossless as an escape hatch.
+  if (outType == "png" && MapContainsKey(arguments, "quality") && quality < 100) {
+    options->set("palette", true);
   }
 
   return options;

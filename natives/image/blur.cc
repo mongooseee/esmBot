@@ -22,6 +22,7 @@ CmdOutput esmb::Image::Blur(const string &type, string &outType, const char *buf
 
   char *buf;
   size_t dataSize = 0;
-  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize);
+  out.write_to_buffer(("." + outType).c_str(), reinterpret_cast<void **>(&buf), &dataSize,
+                      GetOutputOptions(outType, arguments));
   return {buf, dataSize};
 }
