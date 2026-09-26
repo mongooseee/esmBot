@@ -15,7 +15,7 @@ import { convFlagType } from "#utils/handler.js";
 import { getAllLocalizations } from "#utils/i18n.js";
 import logger from "#utils/logger.js";
 import { runMediaJob } from "#utils/media.js";
-import mediaDetect from "#utils/mediadetect.js";
+import mediaDetect, { klipyAttribution } from "#utils/mediadetect.js";
 import { clean, isEmpty, maxFileSize, random } from "#utils/misc.js";
 import { upload } from "#utils/tempimages.js";
 import type { ExtendedConstructedCommandOptions, MediaParams, MediaMeta, MediaTypes } from "#utils/types.js";
@@ -178,10 +178,11 @@ class MediaCommand extends Command {
 
       this.success = true;
       const flags = ephemeral ? 64 : undefined;
+      const attribution = result.klipy ? klipyAttribution : undefined;
 
       if (type === "text") {
         return {
-          content: `\`\`\`\n${clean(buffer.toString("utf8"), [], true)}\n\`\`\``,
+          content: `\`\`\`\n${clean(buffer.toString("utf8"), [], true)}\n\`\`\`${attribution ? `\n${attribution}` : ""}`,
           flags,
         };
       }
@@ -193,9 +194,9 @@ class MediaCommand extends Command {
       if (buffer.length > sizeLimit) {
         if (process.env.TEMPDIR && process.env.TEMPDIR !== "" && this.permissions.has("EMBED_LINKS")) {
           if (this.interaction) {
-            await upload(this.client, { ...file, flags }, this.interaction);
+            await upload(this.client, { ...file, flags }, this.interaction, attribution);
           } else if (this.message) {
-            await upload(this.client, { ...file, flags }, this.message);
+            await upload(this.client, { ...file, flags }, this.message, attribution);
           }
         } else {
           return {
@@ -205,6 +206,7 @@ class MediaCommand extends Command {
         }
       } else {
         return {
+          content: attribution,
           files: [file],
           flags,
         };

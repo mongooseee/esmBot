@@ -7,6 +7,7 @@ import type WSocket from "ws";
 import { WebSocketServer, type ErrorEvent } from "ws";
 import logger from "#utils/logger.js";
 import { media } from "#utils/mediaLib.js";
+import { klipyAttribution } from "#utils/mediadetect.js";
 import run from "#utils/mediaRunner.js";
 import type { JobOutput, MediaFormats, MediaParams } from "#utils/types.js";
 
@@ -46,6 +47,7 @@ interface Job {
   data?: Buffer;
   ext?: string;
   spoiler?: boolean;
+  klipy?: boolean;
 }
 
 interface MiniJob {
@@ -271,6 +273,7 @@ httpServer.on("request", (req, res) => {
     if (contentType) res.setHeader("Content-Type", contentType);
     else res.setHeader("Content-Type", job.ext ?? "application/octet-stream");
     if (job.spoiler) res.setHeader("X-Spoiler", "true");
+    if (job.klipy) res.setHeader("X-Klipy", "true");
     jobs.delete(id);
     return res.end(job.data);
   }
@@ -368,6 +371,7 @@ async function finishJob(data: JobOutput, job: MiniJob, object: MediaParams, ws:
   jobObject.data = data.buffer;
   jobObject.ext = data.type;
   jobObject.spoiler = data.spoiler;
+  jobObject.klipy = data.klipy;
   let tag: Buffer;
   if (!jobObject.tag) {
     tag = await waitForVerify(jobObject.verifyEvent);
@@ -387,6 +391,7 @@ async function finishJob(data: JobOutput, job: MiniJob, object: MediaParams, ws:
     const form = new FormData();
     const filename = `${jobObject.spoiler || object.spoiler ? "SPOILER_" : ""}${object.cmd}.${jobObject.ext}`;
     form.set("files[0]", new Blob([jobObject.data]), filename);
+    if (jobObject.klipy) form.set("payload_json", JSON.stringify({ content: klipyAttribution }));
     const controller = new AbortController();
     const timeout = setTimeout(
       () => {

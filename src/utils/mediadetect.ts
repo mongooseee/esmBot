@@ -75,6 +75,9 @@ type KlipyResponse = {
   };
 };
 
+/** Attribution shown alongside any response built from KLIPY content */
+export const klipyAttribution = "-# Powered by KLIPY";
+
 const tenorRegex = /^https:\/\/media\d?\.tenor\.com(?:\/m)?\/([\w-%]+)\/[\w-%]+\.gif$/;
 
 /**
@@ -133,6 +136,7 @@ async function getMedia(
       if (json.data.data.length === 0) return;
 
       payload.path = json.data.data[0].file.hd.gif.url;
+      payload.klipy = true;
     } else if (giphyURLs.includes(host)) {
       // Can result in an HTML page instead of a WEBP
       payload.path = `https://media0.giphy.com/media/${media2.split("/")[4].split("-").pop()}/giphy.webp`;

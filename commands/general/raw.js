@@ -1,6 +1,6 @@
 import Command from "#cmd-classes/command.js";
 import { request } from "#utils/media.js";
-import mediaDetect from "#utils/mediadetect.js";
+import mediaDetect, { klipyAttribution } from "#utils/mediadetect.js";
 
 class RawCommand extends Command {
   async run() {
@@ -21,7 +21,7 @@ class RawCommand extends Command {
     }
     if (!final) return this.getString("image.couldNotFind");
 
-    return final.path;
+    return final.klipy ? `${final.path}\n${klipyAttribution}` : final.path;
   }
 
   static description = "Gets a direct image URL (useful for saving GIFs from sites like Tenor)";

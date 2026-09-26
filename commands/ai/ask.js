@@ -1,7 +1,7 @@
 import AICommand from "#cmd-classes/aiCommand.js";
-import { chat, toDataURL } from "#utils/ai.js";
+import { allowedEfforts, chat, standardEffort, toContentPart } from "#utils/ai.js";
 import { selectedImages } from "#utils/collections.js";
-import mediaDetect from "#utils/mediadetect.js";
+import mediaDetect, { klipyAttribution } from "#utils/mediadetect.js";
 import { clean } from "#utils/misc.js";
 
 const systemPrompt =
@@ -19,24 +19,28 @@ class AskCommand extends AICommand {
 
       await this.acknowledge();
 
-      const image = await this.findImage();
+      const media = await this.findMedia();
       const reply = await chat(
         [
           { role: "system", content: systemPrompt },
           {
             role: "user",
             // the docs recommend putting the text before any images
-            content: image ? [{ type: "text", text: prompt }, image] : prompt,
+            content: media ? [{ type: "text", text: prompt }, media.part] : prompt,
           },
         ],
         this.getOptionString("model"),
+        this.getOptionString("effort"),
       );
 
       this.success = true;
       // clean() neutralizes every @ in the output, so nothing the model writes can ping
       const content = clean(reply);
+      // leave room for the attribution so truncation can't cut it off
+      const footer = media?.klipy ? `\n${klipyAttribution}` : "";
+      const limit = 2000 - footer.length;
       return {
-        content: content.length > 2000 ? `${content.slice(0, 1999)}…` : content,
+        content: `${content.length > limit ? `${content.slice(0, limit - 1)}…` : content}${footer}`,
         flags: this.getOptionBoolean("ephemeral") ? 64 : undefined,
       };
     } catch (e) {
@@ -51,16 +55,19 @@ class AskCommand extends AICommand {
    * channel the way the image commands do would silently staple an unrelated
    * image onto plain text questions.
    */
-  async findImage() {
-    let path;
-    if (this.getOptionAttachment("image") || this.getOptionString("link")) {
+  async findMedia() {
+    let meta;
+    const audio = this.type === "application" ? this.getOptionAttachment("audio") : undefined;
+    if (audio) {
+      meta = { path: audio.url };
+    } else if (this.getOptionAttachment("image") || this.getOptionString("link")) {
       const media = await mediaDetect(this.client, this.permissions, this.message, this.interaction, true);
-      path = media[0]?.path;
+      meta = media[0];
     } else {
-      path = selectedImages.get(this.author.id)?.path;
+      meta = selectedImages.get(this.author.id);
     }
-    if (!path) return;
-    return { type: "image_url", image_url: { url: await toDataURL(path) } };
+    if (!meta?.path) return;
+    return { part: await toContentPart(meta.path), klipy: !!meta.klipy };
   }
 
   static init() {
@@ -81,15 +88,30 @@ class AskCommand extends AICommand {
         description: "An image to ask about",
       },
       {
+        name: "audio",
+        type: "attachment",
+        description: "An audio or video file to ask about",
+      },
+      {
         name: "link",
         type: "string",
-        description: "The URL of an image to ask about",
+        description: "The URL of an image, audio or video file to ask about",
+      },
+      {
+        name: "effort",
+        type: "string",
+        description: "How much the model thinks before answering, if it can",
+        // only what OPENROUTER_MAX_EFFORT allows, so there's nothing to reject
+        choices: allowedEfforts().map((level) => ({
+          name: level === standardEffort() ? `${level} (default)` : level,
+          value: level,
+        })),
       },
     );
     return this;
   }
 
-  static description = "Asks an AI model a question, optionally about an image";
+  static description = "Asks an AI model a question, optionally about an image, audio or video";
   static aliases = ["ai", "chat", "gpt"];
 }
 

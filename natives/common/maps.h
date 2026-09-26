@@ -44,6 +44,7 @@ namespace esmb {
         {"spin",       &Spin      },
         {"spotify",    &Spotify   },
         {"squish",     &Squish    },
+        {"still",      &Still     },
         {"swirl",      &Swirl     },
         {"tile",       &Tile      },
         {"togif",      &ToGif     },

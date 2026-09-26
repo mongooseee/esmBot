@@ -191,7 +191,12 @@ class MediaConnection {
     const contentType = req.headers.get("content-type");
     let type = contentType ? mimeToExt(contentType) : "unknown";
     if (type === "unknown" && contentType && etcTypes.includes(contentType)) type = contentType;
-    return { buffer: Buffer.from(await req.arrayBuffer()), type, spoiler: req.headers.has("X-Spoiler") };
+    return {
+      buffer: Buffer.from(await req.arrayBuffer()),
+      type,
+      spoiler: req.headers.has("X-Spoiler"),
+      klipy: req.headers.has("X-Klipy"),
+    };
   }
 
   async getCount() {

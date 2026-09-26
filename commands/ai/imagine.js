@@ -15,7 +15,7 @@ class ImagineCommand extends AICommand {
 
       const image = await generateImage(prompt, [], this.getOptionString("model"));
       this.success = true;
-      return await this.sendImage(image, "imagine");
+      return await this.sendFile(image, "imagine");
     } catch (e) {
       return this.handleError(e);
     } finally {
@@ -42,6 +42,7 @@ class ImagineCommand extends AICommand {
     return this;
   }
 
+  static modelKind = "image";
   static description = "Generates an image from a description";
   static aliases = ["generate", "dream", "txt2img"];
 }

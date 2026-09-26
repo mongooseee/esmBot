@@ -1,7 +1,7 @@
 import AICommand from "#cmd-classes/aiCommand.js";
 import { generateImage, toDataURL } from "#utils/ai.js";
 import { selectedImages } from "#utils/collections.js";
-import mediaDetect from "#utils/mediadetect.js";
+import mediaDetect, { klipyAttribution } from "#utils/mediadetect.js";
 
 class EditCommand extends AICommand {
   async run() {
@@ -30,7 +30,7 @@ class EditCommand extends AICommand {
       const reference = await toDataURL(media[0].path);
       const image = await generateImage(prompt, [reference], this.getOptionString("model"));
       this.success = true;
-      return await this.sendImage(image, "edit");
+      return await this.sendFile(image, "edit", media[0].klipy ? klipyAttribution : undefined);
     } catch (e) {
       return this.handleError(e);
     } finally {
@@ -69,6 +69,7 @@ class EditCommand extends AICommand {
     return this;
   }
 
+  static modelKind = "image";
   static description = "Edits an image using an AI model";
   static aliases = ["img2img", "inpaint", "aiedit"];
 }

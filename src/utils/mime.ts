@@ -11,6 +11,8 @@ export function mimeToExt(mime: string) {
     case "image/heif": // avif files can sometimes be misdetected as regular heif
     case "image/avif":
       return "avif";
+    case "audio/mpeg":
+      return "mp3";
     default:
       return mime.split("/")[1] ?? "unknown";
   }
