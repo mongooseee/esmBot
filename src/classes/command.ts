@@ -3,6 +3,8 @@ import {
   type AllowedMentions,
   type AnyTextableChannel,
   type Attachment,
+  type AutocompleteChoice,
+  type AutocompleteInteraction,
   type Client,
   type CommandInteraction,
   Constants,
@@ -272,6 +274,14 @@ class Command {
 
   static init() {
     return this;
+  }
+
+  /**
+   * Suggest values for whichever option the user is typing into. Commands with
+   * options marked `autocomplete: true` override this.
+   */
+  static async autocomplete(_interaction: AutocompleteInteraction): Promise<AutocompleteChoice[]> {
+    return [];
   }
 
   static description = "No description found";

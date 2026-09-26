@@ -89,9 +89,12 @@
       "whisper": "Adds a Whisper style caption to an image",
       "wide": "Stretches an image to 19x its width",
       "woow": "Mirrors the top of an image onto the bottom",
-      "ask": "Asks an AI model a question, optionally about an image",
+      "ask": "Asks an AI model a question, optionally about an image, audio or video",
       "imagine": "Generates an image from a description",
       "edit": "Edits an image using an AI model",
+      "speak": "Reads text aloud using an AI voice",
+      "transcribe": "Transcribes the speech in an audio or video file",
+      "compose": "Generates a piece of music from a description",
       "Select Image": "No description found",
       "music": "Handles music playback",
       "tags": "The main tags command. Check the help page for more info: https://esmbot.net/help.html"
@@ -323,7 +326,9 @@
       "ask": {
         "prompt": "prompt",
         "image": "image",
-        "link": "link"
+        "audio": "audio",
+        "link": "link",
+        "effort": "effort"
       },
       "imagine": {
         "prompt": "prompt",
@@ -334,13 +339,29 @@
         "image": "image",
         "link": "link",
         "spoiler": "spoiler"
+      },
+      "speak": {
+        "text": "text",
+        "voice": "voice",
+        "spoiler": "spoiler"
+      },
+      "transcribe": {
+        "audio": "audio",
+        "link": "link"
+      },
+      "compose": {
+        "prompt": "prompt",
+        "length": "length",
+        "spoiler": "spoiler"
       }
     },
     "flags": {
       "ask": {
         "prompt": "What you want to ask",
         "image": "An image to ask about",
-        "link": "The URL of an image to ask about"
+        "audio": "An audio or video file to ask about",
+        "link": "The URL of an image, audio or video file to ask about",
+        "effort": "How much the model thinks before answering, if it can"
       },
       "imagine": {
         "prompt": "A description of the image you want",
@@ -350,6 +371,20 @@
         "prompt": "A description of the change you want",
         "image": "An image/GIF attachment",
         "link": "An image/GIF URL",
+        "spoiler": "Attempt to send output as a spoiler"
+      },
+      "speak": {
+        "text": "The text to read aloud",
+        "voice": "The voice to use, which depends on the model",
+        "spoiler": "Attempt to send output as a spoiler"
+      },
+      "transcribe": {
+        "audio": "An audio or video file",
+        "link": "An audio or video URL"
+      },
+      "compose": {
+        "prompt": "A description of the music you want, including any lyrics",
+        "length": "Roughly how long the music should be",
         "spoiler": "Attempt to send output as a spoiler"
       },
       "8ball": {
@@ -1026,9 +1061,23 @@
     }
   },
   "ai": {
+    "auth": "The OpenRouter API key on this instance of esmBot isn't valid. Let the bot owner know!",
+    "badChatModel": "`{{model}}` isn't a text model on OpenRouter. Check the name at <https://openrouter.ai/models>.",
+    "badEffort": "You can't use `{{effort}}` as the effort level here. Pick one of: {{levels}}",
+    "badImageModel": "`{{model}}` isn't an image generation model on OpenRouter. Check the name at <https://openrouter.ai/models?output_modalities=image>.",
+    "badLength": "The length has to be one of these, in seconds: {{lengths}}",
+    "badLink": "That isn't a valid link!",
+    "badMusicModel": "`{{model}}` isn't a music model on OpenRouter. Check the name at <https://openrouter.ai/models?output_modalities=audio>.",
+    "badSpeechModel": "`{{model}}` isn't a text-to-speech model on OpenRouter. Check the name at <https://openrouter.ai/models?output_modalities=speech>.",
+    "badTranscriptionModel": "`{{model}}` isn't a transcription model on OpenRouter. Check the name at <https://openrouter.ai/models?output_modalities=transcription>.",
+    "badVoice": "`{{model}}` doesn't have a voice called `{{voice}}`. Try one of these: {{voices}}",
+    "blocked": "`{{model}}` refused to make that. Try rewording your prompt; music models often refuse to imitate real artists or songs.",
+    "convert": "I couldn't convert that image into a format the AI model accepts! Try a PNG or JPEG instead.",
     "credits": "This instance of esmBot has run out of AI credits!",
     "disabled": "AI commands aren't set up on this instance of esmBot.",
-    "empty": "The AI model didn't return anything usable!",
+    "download": "I couldn't download that file! Try again, or upload it somewhere else.",
+    "downloadRatelimit": "I've been rate limited by the server hosting that file. Try uploading it somewhere else.",
+    "empty": "The AI model didn't return anything usable! Try rewording your prompt.",
     "error": "Something went wrong while talking to the AI provider. Try again in a bit.",
     "flagNames": {
       "model": "model"
@@ -1036,13 +1085,28 @@
     "flags": {
       "model": "An OpenRouter model slug to use instead of the configured default"
     },
-    "large": "That image is too large to send to an AI model!",
-    "moderation": "That request was rejected by the AI provider's content filters.",
+    "large": "That file is too large to send to an AI model! Try one under 8MB.",
+    "largeAudio": "That file is too large to send to an AI model! Try one under 25MB.",
+    "length": "`{{model}}` ran out of room before it finished answering. Try a simpler question, or pick a different model.",
+    "longTranscript": "The transcript was too long to send as a message, so here it is as a file:",
+    "lyrics": "🎵 **Lyrics**",
+    "moderation": "That request was blocked by the AI provider's content filters.",
+    "noAudio": "You need to provide an audio or video file to transcribe!",
     "noImage": "You need to provide an image/GIF to edit!",
     "noPrompt": "You need to provide a prompt!",
-    "nomedia": "I couldn't download that image!",
+    "noSpeech": "I couldn't hear any speech in that!",
+    "noText": "You need to provide some text to read aloud!",
+    "noVision": "`{{model}}` can't look at images. Try again without one, or pick a model that can.",
+    "nomedia": "I couldn't read that as an image! Make sure it's a PNG, JPEG, WebP, GIF, AVIF or HEIF.",
+    "nomediaAny": "I couldn't read that file! It needs to be an image (PNG, JPEG, WebP, GIF, AVIF or HEIF), or a common audio or video format like MP3, OGG, WAV, M4A or MP4.",
+    "nomediaAudio": "I couldn't read that as audio! Make sure it's a common audio or video format, like MP3, OGG, WAV, M4A or MP4.",
+    "outputTooLarge": "The AI model's output was too large to send here!",
     "ratelimit": "The AI provider is rate limiting us right now. Try again in a bit.",
-    "timeout": "The AI provider took too long to respond. Try again in a bit."
+    "rejected": "The AI provider rejected that request:\n> {{reason}}",
+    "textTooLong": "That's too much text to read aloud! Try something under {{max}} characters.",
+    "timeout": "The AI provider took too long to respond. Try again in a bit.",
+    "unavailable": "`{{model}}` is down or overloaded right now. Try again in a bit, or pick a different model.",
+    "unreachable": "I couldn't reach the AI provider. Try again in a bit."
   },
   "error": "Uh oh! I ran into an error while running this command. Please report the content of the attached file at the following link or on the esmBot Support server:",
   "errorCaps": "ERROR",

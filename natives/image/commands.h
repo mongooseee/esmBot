@@ -40,6 +40,7 @@ namespace esmb::Image {
   declare_input_func(Spin);
   declare_input_func(Spotify);
   declare_input_func(Squish);
+  declare_input_func(Still);
   declare_input_func(Swirl);
   declare_input_func(Tile);
   declare_input_func(ToGif);

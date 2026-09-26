@@ -1,12 +1,14 @@
 import process from "node:process";
-import { AttachmentFlags, Constants, type Message } from "oceanic.js";
-import { AIError, enabled, type GeneratedImage } from "#utils/ai.js";
+import { AttachmentFlags, type AutocompleteInteraction, Constants, type Message } from "oceanic.js";
+import { AIError, enabled, type GeneratedFile, type Kind, suggestModels } from "#utils/ai.js";
 import { aiRequests, selectedImages } from "#utils/collections.js";
 import { getAllLocalizations } from "#utils/i18n.js";
 import logger from "#utils/logger.js";
-import { maxFileSize } from "#utils/misc.js";
+import { clean, maxFileSize } from "#utils/misc.js";
 import { upload } from "#utils/tempimages.js";
 import Command from "./command.ts";
+
+const imageExts = ["png", "jpg", "webp", "gif", "avif"];
 
 class AICommand extends Command {
   /**
@@ -31,34 +33,41 @@ class AICommand extends Command {
    */
   handleError(e: unknown) {
     if (!(e instanceof AIError)) throw e;
-    logger.warn(`AI request failed (${e.code}): ${e.message}`);
-    return this.getString(`ai.${e.code}`, { returnNull: true }) ?? this.getString("ai.error");
+    logger.warn(`AI request failed (${e.code}${e.params.model ? `, ${e.params.model}` : ""}): ${e.message}`);
+    // the model can come straight from the user and the reason from the provider,
+    // so neither gets to ping anyone or break out of the formatting around it
+    const params = Object.fromEntries(
+      Object.entries(e.params).map(([key, value]) => [key, clean(value.replaceAll(/\s+/g, " "))]),
+    );
+    return this.getString(`ai.${e.code}`, { returnNull: true, params }) ?? this.getString("ai.error", { params });
   }
 
   /**
-   * Send a generated image, falling back to the temp server when it's too big
-   * to attach directly.
+   * Send a generated file, optionally with some text alongside it. Images fall
+   * back to the temp server when they're too big to attach directly.
    */
-  async sendImage(image: GeneratedImage, name: string) {
+  async sendFile(generated: GeneratedFile, name: string, content?: string) {
     const spoiler = this.getOptionBoolean("spoiler");
     const ephemeral = this.getOptionBoolean("ephemeral");
     const flags = ephemeral ? 64 : undefined;
     const sizeLimit = this.interaction?.attachmentSizeLimit ?? maxFileSize(this.guild);
 
     const file = {
-      contents: image.contents,
-      name: `${spoiler ? "SPOILER_" : ""}${name}.${image.ext}`,
+      contents: generated.contents,
+      name: `${spoiler ? "SPOILER_" : ""}${name}.${generated.ext}`,
     };
 
-    if (file.contents.length <= sizeLimit) return { files: [file], flags };
+    if (file.contents.length <= sizeLimit) return { content, files: [file], flags };
 
+    // the temp server shows files in a media gallery, which can't play audio
+    if (!imageExts.includes(generated.ext)) return { content: this.getString("ai.outputTooLarge"), flags: 64 };
     if (!process.env.TEMPDIR || process.env.TEMPDIR === "" || !this.permissions.has("EMBED_LINKS")) {
       return { content: this.getString("image.noTempServer"), flags: 64 };
     }
     if (this.interaction) {
-      await upload(this.client, { ...file, flags }, this.interaction);
+      await upload(this.client, { ...file, flags }, this.interaction, content);
     } else if (this.message) {
-      await upload(this.client, { ...file, flags }, this.message);
+      await upload(this.client, { ...file, flags }, this.message, content);
     }
     return;
   }
@@ -69,7 +78,7 @@ class AICommand extends Command {
   async finalize(res?: Message) {
     if (!this.interaction || !res) return;
     const attachment = res.attachments.first();
-    if (!attachment) return;
+    if (!attachment?.contentType?.startsWith("image/")) return;
     const path = new URL(attachment.proxyURL);
     path.searchParams.set("animated", "true");
     selectedImages.set(this.interaction.user.id, {
@@ -90,6 +99,7 @@ class AICommand extends Command {
         type: Constants.ApplicationCommandOptionTypes.STRING,
         description: "An OpenRouter model slug to use instead of the configured default",
         descriptionLocalizations: getAllLocalizations("ai.flags.model"),
+        autocomplete: true,
       },
       {
         name: "ephemeral",
@@ -101,6 +111,17 @@ class AICommand extends Command {
     ];
     return this;
   }
+
+  static async autocomplete(interaction: AutocompleteInteraction) {
+    const focused = interaction.data.options.getFocused();
+    if (focused?.name !== "model") return [];
+    return await suggestModels(this.modelKind, String(focused.value));
+  }
+
+  /**
+   * The kind of model this command uses, which decides the models suggested for it.
+   */
+  static modelKind: Kind = "chat";
 }
 
 export default AICommand;

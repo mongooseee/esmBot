@@ -23,7 +23,12 @@ type FileStats = {
 let dirSizeCache: number;
 let threshold: number | undefined;
 
-export async function upload(client: Client, result: File & { flags?: number }, context: CommandInteraction | Message) {
+export async function upload(
+  client: Client,
+  result: File & { flags?: number },
+  context: CommandInteraction | Message,
+  footer?: string,
+) {
   const filename = `${Math.random().toString(36).substring(2, 15)}.${result.name.split(".")[1]}`;
   await writeFile(`${process.env.TEMPDIR}/${filename}`, result.contents);
   const imageURL = `${process.env.TMP_DOMAIN || "https://tmp.esmbot.net"}/${filename}`;
@@ -42,7 +47,7 @@ export async function upload(client: Client, result: File & { flags?: number }, 
         type: Constants.ComponentTypes.TEXT_DISPLAY,
         content: `-# ${getString("image.tempSite", {
           locale: context instanceof CommandInteraction ? context.locale : undefined,
-        })}`,
+        })}${footer ? `\n${footer}` : ""}`,
       },
     ],
     flags: (result.flags ?? 0) | Constants.MessageFlags.IS_COMPONENTS_V2,

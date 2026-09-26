@@ -8,7 +8,7 @@ import logger from "./logger.ts";
 import MediaConnection from "./mediaConnection.ts";
 import run from "./mediaRunner.ts";
 import { random } from "./misc.ts";
-import { mediaTypes, type MediaParams, type MediaTypes } from "./types.ts";
+import { type JobOutput, mediaTypes, type MediaParams, type MediaTypes } from "./types.ts";
 
 let mediaLib: import("./mediaLib.ts").MediaLib | undefined;
 
@@ -72,6 +72,38 @@ export async function request(
     }
   | undefined
 > {
+  if (typeMedia.length === 0) {
+    typeMedia = mediaTypes.slice(0); // clone array
+  }
+
+  const res = await fetchMedia(
+    media,
+    typeMedia.flatMap((v) => formats[v]),
+    typeOnly,
+  );
+  if (!res) return;
+
+  const mediaType = res.type.split("/")[0] as MediaTypes;
+  if (!typeMedia.includes(mediaType)) return;
+
+  return { ...res, mediaType };
+}
+
+/**
+ * Download a file of one of the given MIME types. This is for media that the
+ * processing pipeline doesn't handle, like the audio the AI commands take.
+ */
+export async function download(media: URL, allowed: string[]) {
+  const res = await fetchMedia(media, allowed, false);
+  if (!res?.buf) return;
+  return { ...res, buf: res.buf };
+}
+
+async function fetchMedia(
+  media: URL,
+  allowed: string[],
+  typeOnly: boolean,
+): Promise<{ buf?: Buffer; url: string; type: string; ext: string } | undefined> {
   // verify that IP address is valid
   try {
     const remoteIP = await lookup(media.host);
@@ -134,17 +166,7 @@ export async function request(
     clearTimeout(timeout);
   }
 
-  if (typeMedia.length === 0) {
-    typeMedia = mediaTypes.slice(0); // clone array
-  }
-
-  if (!typeMedia.flatMap((v) => formats[v]).includes(stream.fileType.mime)) {
-    await stream.cancel();
-    return;
-  }
-
-  const mediaType = stream.fileType.mime.split("/")[0] as MediaTypes;
-  if (!typeMedia.includes(mediaType)) {
+  if (!allowed.includes(stream.fileType.mime)) {
     await stream.cancel();
     return;
   }
@@ -153,7 +175,7 @@ export async function request(
   const ext = stream.fileType.ext;
   if (typeOnly) {
     await stream.cancel();
-    return { url, type, ext, mediaType };
+    return { url, type, ext };
   }
 
   const reader = stream.getReader();
@@ -179,7 +201,7 @@ export async function request(
   if (!stream.locked) await stream.cancel();
 
   const buf = Buffer.concat(bufs);
-  return { buf, ext, url, type, mediaType };
+  return { buf, ext, url, type };
 }
 
 function connect(server: string, auth: string | undefined, name: string | undefined, tls?: boolean) {
@@ -246,7 +268,7 @@ async function getIdeal(object: MediaParams): Promise<MediaConnection | undefine
 
 let running = 0;
 
-export async function runMediaJob(params: MediaParams): Promise<{ buffer: Buffer; type: string; spoiler: boolean }> {
+export async function runMediaJob(params: MediaParams): Promise<JobOutput> {
   if (process.env.API_TYPE === "ws") {
     const currentServer = await getIdeal(params);
     if (!currentServer)

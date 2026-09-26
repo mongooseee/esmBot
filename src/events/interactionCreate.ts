@@ -29,6 +29,23 @@ export default async ({ client, database }: EventParams, interaction: AnyInterac
     return;
   }
 
+  // suggestions for an option the user is still typing into
+  if (interaction.isAutocompleteInteraction()) {
+    let name = interaction.data.name;
+    const sub = interaction.data.options.getSubCommand();
+    if (sub) name += ` ${sub.join(" ")}`;
+    const cmd = commands.get(name) as typeof Command | undefined;
+    const choices = await (cmd?.autocomplete(interaction) ?? Promise.resolve([])).catch((e) => {
+      logger.warn(`Autocomplete failed for ${name}: ${e}`);
+      return [];
+    });
+    // Discord allows at most 25 suggestions
+    await interaction.result(choices.slice(0, 25)).catch((e) => {
+      logger.warn(`Could not send autocomplete results for ${name}: ${e}`);
+    });
+    return;
+  }
+
   // block other non-command events
   if (!interaction.isCommandInteraction()) return;
 

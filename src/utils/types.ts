@@ -83,12 +83,15 @@ export interface MediaParams {
 export interface MediaMeta {
   path: string;
   spoiler: boolean;
+  /** Whether the media was resolved through the KLIPY API, which requires attribution */
+  klipy?: boolean;
 }
 
 export interface JobOutput {
   buffer: Buffer;
   type: string;
   spoiler: boolean;
+  klipy?: boolean;
 }
 
 export interface MediaFormats {

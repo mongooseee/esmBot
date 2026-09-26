@@ -41,6 +41,7 @@ export default async function run(object: MediaParams): Promise<JobOutput> {
   let fileType: string | undefined;
   let mediaType: MediaTypes | undefined;
   let spoiler = false;
+  let klipy = false;
   try {
     for (const media of object.inputs) {
       const res = await request(new URL(media.path), supportedTypes, false);
@@ -49,6 +50,7 @@ export default async function run(object: MediaParams): Promise<JobOutput> {
         fileType = res.type;
         mediaType = res.mediaType;
         spoiler = media.spoiler;
+        klipy = !!media.klipy;
         break;
       }
     }
@@ -110,5 +112,6 @@ export default async function run(object: MediaParams): Promise<JobOutput> {
     buffer: data,
     type,
     spoiler,
+    klipy,
   };
 }

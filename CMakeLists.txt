@@ -40,6 +40,7 @@ set(IMAGE_SOURCE_FILES natives/image/common.cc
   natives/image/spin.cc
   natives/image/spotify.cc
   natives/image/squish.cc
+  natives/image/still.cc
   natives/image/swirl.cc
   natives/image/tile.cc
   natives/image/togif.cc
